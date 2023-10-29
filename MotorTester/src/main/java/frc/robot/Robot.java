@@ -68,7 +68,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     int motorID = (int)SmartDashboard.getNumber("Motor ID", -1);
-    double motorSpeed = Math.signum(SmartDashboard.getNumber("Motor Speed", 0));
+    double motorSpeed = 0;
+    if(SmartDashboard.getNumber("Motor Speed", 0) <=1 && SmartDashboard.getNumber("Motor Speed", 0) >= -1){
+      motorSpeed = SmartDashboard.getNumber("Motor Speed", 0);
+    }
     if(motorID != -1 && motorSpeed != 0){
       switch(m_chooser.getSelected()){
         case SparkMax:
