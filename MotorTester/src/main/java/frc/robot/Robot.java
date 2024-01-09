@@ -10,18 +10,17 @@ import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
 
-  public enum Motors{
+  public enum Motors {
     SparkMax,
     TalonSRX,
     TalonFX,
@@ -29,6 +28,12 @@ public class Robot extends TimedRobot {
   }
 
   private final SendableChooser<Motors> m_chooser = new SendableChooser<>();
+  private CANSparkMax spark;
+  private TalonSRX talonSRX;
+  private TalonFX talonFX;
+  private VictorSPX victorSPX;
+  double prevMotorID;
+  double motorSpeed;
 
   @Override
   public void robotInit() {
@@ -39,85 +44,92 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("TalonFX", Motors.TalonFX);
     m_chooser.addOption("VictorSPX", Motors.VictorSPX);
     SmartDashboard.putData(m_chooser);
+    prevMotorID = 0;
   }
 
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+  }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+  }
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+  }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void autonomousExit() {}
+  public void autonomousExit() {
+  }
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    motorSpeed = 0;
+    int motorID = (int) SmartDashboard.getNumber("Motor ID", -1);
+    if (motorID != -1) {
+      switch (m_chooser.getSelected()) {
+        case SparkMax:
+          if (spark == null || prevMotorID != motorID)
+            spark = new CANSparkMax(motorID, MotorType.kBrushless);
+          break;
+        case TalonSRX:
+          if (talonSRX == null || prevMotorID != motorID)
+            talonSRX = new TalonSRX(motorID);
+          break;
+        case TalonFX:
+          if (talonFX == null || prevMotorID != motorID)
+            talonFX = new TalonFX(motorID);
+          break;
+        case VictorSPX:
+          if (victorSPX == null || prevMotorID != motorID)
+            victorSPX = new VictorSPX(motorID);
+          break;
+        default:
+          break;
+      }
+    }
+    prevMotorID = motorID;
+  }
 
   @Override
   public void teleopPeriodic() {
-    int motorID = (int)SmartDashboard.getNumber("Motor ID", -1);
-    double motorSpeed = 0;
-    if(SmartDashboard.getNumber("Motor Speed", 0) <=1 && SmartDashboard.getNumber("Motor Speed", 0) >= -1){
-      motorSpeed = SmartDashboard.getNumber("Motor Speed", 0);
-    }
-    if(motorID != -1 && motorSpeed != 0){
-      switch(m_chooser.getSelected()){
-        case SparkMax:
-          new CANSparkMax(motorID, MotorType.kBrushless).set(motorSpeed);
-          break;
-        case TalonSRX:
-          new TalonSRX(motorID).set(TalonSRXControlMode.PercentOutput, motorSpeed);
-          break;
-        case TalonFX:
-          new TalonFX(motorID).set(TalonFXControlMode.PercentOutput, motorSpeed);
-          break;
-        case VictorSPX:
-          new VictorSPX(motorID).set(VictorSPXControlMode.PercentOutput, motorSpeed);
-          break;
-        default:
-        break;
-      }
-    } else{
-        switch(m_chooser.getSelected()){
-          case SparkMax:
-            new CANSparkMax(motorID, MotorType.kBrushless).set(0);
-            break;
-          case TalonSRX:
-            new TalonSRX(motorID).set(TalonSRXControlMode.PercentOutput, 0);
-            break;
-          case TalonFX:
-            new TalonFX(motorID).set(TalonFXControlMode.PercentOutput, 0);
-            break;
-          case VictorSPX:
-            new VictorSPX(motorID).set(VictorSPXControlMode.PercentOutput, 0);
-            break;
-          default:
-          break;
-        }
-    }
+    motorSpeed = MathUtil.clamp(SmartDashboard.getNumber("Motor Speed", 0), -1, 1);
+    if (spark != null)
+      spark.set(motorSpeed);
+    if (talonSRX != null)
+      talonSRX.set(TalonSRXControlMode.PercentOutput, motorSpeed);
+    if (talonFX != null)
+      talonFX.set(TalonFXControlMode.PercentOutput, motorSpeed);
+    if (victorSPX != null)
+      victorSPX.set(VictorSPXControlMode.PercentOutput, motorSpeed);
   }
 
   @Override
-  public void teleopExit() {}
+  public void teleopExit() {
+  }
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void testExit() {}
+  public void testExit() {
+  }
 }
